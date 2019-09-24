@@ -61,7 +61,18 @@ router.post('/fileUploads', upload.single('upload'), (req, res, next) => {
   // req.body.fileUpload.owner = req.user.id
   console.log(req.file)
   fileUploadApi(req.file.originalname, req.file.buffer)
-    .then(console.log)
+    .then(s3Response => {
+      console.log(s3Response)
+      const fileUploadParams = {
+        name: s3Response.Key,
+        fileType: req.file.mimetype,
+        url: s3Response.Location
+      }
+      return FileUpload.create(fileUploadParams)
+    })
+    .then(mongooseResponse => {
+      res.status(201).json({fileUpload: mongooseResponse.toObject()})
+    })
   // FileUpload.create(req.body.fileUpload)
   // .then(fileUpload => {
   //     res.status(201).json({ fileUpload: fileUpload.toObject() })
